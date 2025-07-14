@@ -11,10 +11,28 @@ body {
 .chat-wrapper {
   width: 100%;
   max-width: 600px;
+  min-width: 300px;
   background: #1e1e1e;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+@media (max-width: 700px) {
+  .chat-wrapper {
+    max-width: 98vw;
+    min-width: unset;
+    padding: 8px;
+  }
+  .input-area {
+    flex-direction: column;
+    gap: 8px;
+  }
+  #user-input, #send-btn, #file-input {
+    width: 100%;
+    box-sizing: border-box;
+  }
 }
 
 h1 {

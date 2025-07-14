@@ -24,10 +24,12 @@ const personas = {
   historian: msg => `As a historian: "${msg}" has a rich history. Would you like to hear about its origins or impact?`
 };
 
-app.post('/chat', async (req, res) => {
+// Use multer for /chat route to handle multipart/form-data
+app.post('/chat', upload.single('file'), async (req, res) => {
   console.log('POST /chat called');
-  console.log('Received message:', req.body);
+  console.log('Received body:', req.body);
   const { message, persona } = req.body;
+  const file = req.file; // file info if uploaded
 
   const personaPrompts = {
     therapist: "You are a compassionate therapist.",
