@@ -12,7 +12,7 @@ function addMessage(text, sender, avatar) {
     <span class="bubble">${text}</span>
   `;
   chatbox.appendChild(msgDiv);
-  chatbox.scrollTop = chatbox.scrollHeight;
+  chatbox.scrollTop = 0; // Scroll to the top after adding a message
 }
 
 function showTyping() {
