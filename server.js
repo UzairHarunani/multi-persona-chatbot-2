@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const axios = require('axios');
 const multer = require('multer');
+const fs = require('fs');
 const app = express();
 
 const upload = multer({ dest: 'uploads/' });
@@ -30,6 +31,16 @@ app.post('/chat', upload.single('file'), async (req, res) => {
   console.log('Received body:', req.body);
   const { message, persona } = req.body;
   const file = req.file; // file info if uploaded
+  let fileContent = '';
+
+  if (file) {
+    // Only read text files for safety
+    if (file.mimetype.startsWith('text/')) {
+      fileContent = fs.readFileSync(path.join(__dirname, file.path), 'utf8');
+      // You can now use fileContent in your AI prompt or response
+      console.log('File content:', fileContent);
+    }
+  }
 
   const personaPrompts = {
     therapist: "You are a compassionate therapist.",
@@ -47,6 +58,10 @@ app.post('/chat', upload.single('file'), async (req, res) => {
   };
   const systemPrompt = personaPrompts[persona] || "You are a helpful assistant.";
 
+  const userPrompt = fileContent
+    ? `${message}\n\n[Attached file content:]\n${fileContent}`
+    : message;
+
   try {
     const response = await axios.post(
       'https://openrouter.ai/api/v1/chat/completions',
@@ -54,7 +69,7 @@ app.post('/chat', upload.single('file'), async (req, res) => {
         model: "mistralai/mixtral-8x7b-instruct",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: message }
+          { role: "user", content: userPrompt }
         ]
       },
       {
