@@ -40,10 +40,16 @@ function sendMessage() {
   const personaAvatars = {
     therapist: '🧠',
     chef: '👨‍🍳',
-    pirate: '🏴‍☠️',
-    coach: '💪',
-    wizard: '🧙',
-    comedian: '🎤'
+    coach: '🏅',
+    comedian: '🎤',
+    teacher: '📚',
+    techexpert: '💻',
+    doctor: '🩺',
+    pharmacist: '💊',
+    financer: '💵',
+    businessman: '💼',
+    scientist: '🔬',
+    historian: '🏛️'
   };
   addMessage(text, 'user', '🧑');
   userInput.value = '';
