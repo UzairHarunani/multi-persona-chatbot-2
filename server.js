@@ -42,7 +42,7 @@ app.post('/chat', async (req, res) => {
       },
       {
         headers: {
-          'Authorization': 'Bearer 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',
+          'Authorization': `Bearer ${process.env.MPC_KEY}`,
           'Content-Type': 'application/json'
         }
       }
