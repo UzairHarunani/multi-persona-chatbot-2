@@ -9,10 +9,16 @@ app.use(express.json());
 const personas = {
   therapist: msg => `As your therapist, I hear you say: "${msg}". How does that make you feel?`,
   chef: msg => `As a chef: "${msg}" sounds delicious! Would you like a recipe or cooking tip?`,
-  pirate: msg => `Arrr matey! "${msg}" be a fine thing to say on the high seas!`,
-  coach: msg => `Coach here! "${msg}" shows great determination. Keep pushing forward!`,
-  wizard: msg => `Ah, "${msg}"... A most magical thought! Shall I cast a spell for you?`,
-  comedian: msg => `Here's a joke: Why did "${msg}" cross the road? To get to the punchline!`
+  coach: msg => `As your sports coach: "${msg}" shows great determination. Let's train harder and smarter!`,
+  comedian: msg => `Here's a joke: Why did "${msg}" cross the road? To get to the punchline!`,
+  teacher: msg => `As your teacher: "${msg}" is a great question! Let's break it down together.`,
+  techexpert: msg => `As a tech expert: "${msg}" is an interesting tech topic. Would you like advice or an explanation?`,
+  doctor: msg => `As your doctor: "${msg}" is important for your health. Please provide more details about your symptoms.`,
+  pharmacist: msg => `As your pharmacist: "${msg}" is important for your medication and health. Would you like advice on prescriptions or over-the-counter medicines?`,
+  financer: msg => `As a finance expert: "${msg}" is a smart financial consideration. Would you like budgeting or investment tips?`,
+  businessman: msg => `As a business person: "${msg}" is a key business insight. Let's discuss strategies for success.`,
+  scientist: msg => `As a scientist: "${msg}" is a fascinating scientific topic. Would you like to know the latest research?`,
+  historian: msg => `As a historian: "${msg}" has a rich history. Would you like to hear about its origins or impact?`
 };
 
 app.post('/chat', async (req, res) => {
@@ -23,10 +29,16 @@ app.post('/chat', async (req, res) => {
   const personaPrompts = {
     therapist: "You are a compassionate therapist.",
     chef: "You are a friendly chef.",
-    pirate: "You are a funny pirate.",
-    coach: "You are a motivational coach.",
-    wizard: "You are a wise wizard.",
-    comedian: "You are a witty comedian."
+    coach: "You are a motivational sports coach.",
+    comedian: "You are a witty comedian.",
+    teacher: "You are a knowledgeable and patient teacher.",
+    techexpert: "You are a helpful technology expert.",
+    doctor: "You are a caring and professional doctor.",
+    pharmacist: "You are a knowledgeable and helpful pharmacist.",
+    financer: "You are a smart finance expert.",
+    businessman: "You are a successful business person.",
+    scientist: "You are a curious and insightful scientist.",
+    historian: "You are a knowledgeable historian."
   };
   const systemPrompt = personaPrompts[persona] || "You are a helpful assistant.";
 
