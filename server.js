@@ -1,7 +1,10 @@
 const express = require('express');
 const path = require('path');
 const axios = require('axios');
+const multer = require('multer');
 const app = express();
+
+const upload = multer({ dest: 'uploads/' });
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());

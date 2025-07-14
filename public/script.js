@@ -2,6 +2,7 @@ const chatbox = document.getElementById('chatbox');
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 const personaSelect = document.getElementById('persona');
+const fileInput = document.getElementById('file-input');
 
 function addMessage(text, sender, avatar) {
   const msgDiv = document.createElement('div');
@@ -35,8 +36,11 @@ userInput.addEventListener('keydown', e => {
 
 function sendMessage() {
   const text = userInput.value.trim();
-  if (!text) return;
   const persona = personaSelect.value;
+  const file = fileInput.files[0];
+
+  if (!text && !file) return;
+
   const personaAvatars = {
     therapist: '🧠',
     chef: '👨‍🍳',
@@ -51,14 +55,20 @@ function sendMessage() {
     scientist: '🔬',
     historian: '🏛️'
   };
-  addMessage(text, 'user', '🧑');
+
+  addMessage(text || (file ? `Sent a file: ${file.name}` : ''), 'user', '🧑');
   userInput.value = '';
+  fileInput.value = '';
   showTyping();
+
+  const formData = new FormData();
+  formData.append('persona', persona);
+  formData.append('message', text);
+  if (file) formData.append('file', file);
 
   fetch('/chat', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: text, persona })
+    body: formData
   })
     .then(res => res.json())
     .then(data => {
