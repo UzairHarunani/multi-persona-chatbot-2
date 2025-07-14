@@ -56,7 +56,11 @@ function sendMessage() {
     historian: '🏛️'
   };
 
-  addMessage(text || (file ? `Sent a file: ${file.name}` : ''), 'user', '🧑');
+  addMessage(
+    text || (file ? `Sent a file: ${file.name}` : ''),
+    'user',
+    '🧑'
+  );
   userInput.value = '';
   fileInput.value = '';
   showTyping();
@@ -73,7 +77,12 @@ function sendMessage() {
     .then(res => res.json())
     .then(data => {
       removeTyping();
-      addMessage(data.reply, 'bot', personaAvatars[persona] || '🤖');
+      let botMessage = data.reply;
+      // If a file was uploaded, show a link to it
+      if (data.fileName && data.fileLink) {
+        botMessage += `<br><a href="${data.fileLink}" target="_blank">Download: ${data.fileName}</a>`;
+      }
+      addMessage(botMessage, 'bot', personaAvatars[persona] || '🤖');
     })
     .catch(() => {
       removeTyping();

@@ -9,6 +9,7 @@ const upload = multer({ dest: 'uploads/' });
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const personas = {
   therapist: msg => `As your therapist, I hear you say: "${msg}". How does that make you feel?`,
@@ -33,12 +34,14 @@ app.post('/chat', upload.single('file'), async (req, res) => {
   const file = req.file; // file info if uploaded
   let fileContent = '';
 
+  let fileLink = '';
   if (file) {
     // Only read text files for safety
     if (file.mimetype.startsWith('text/')) {
       fileContent = fs.readFileSync(path.join(__dirname, file.path), 'utf8');
-      // You can now use fileContent in your AI prompt or response
       console.log('File content:', fileContent);
+      // Provide a download link for the uploaded file
+      fileLink = `/uploads/${file.filename}`;
     }
   }
 
@@ -80,7 +83,7 @@ app.post('/chat', upload.single('file'), async (req, res) => {
       }
     );
     const reply = response.data.choices[0].message.content;
-    res.json({ reply });
+    res.json({ reply, fileName: file ? file.originalname : null, fileLink });
   } catch (err) {
     console.error('Error contacting AI:', err.response ? err.response.data : err.message);
     res.json({ reply: "Sorry, there was an error contacting the AI." });
