@@ -1,9 +1,11 @@
 const express = require('express');
 const path = require('path');
-const axios = require('axios');
+const { OpenAI } = require('openai');
 const multer = require('multer');
 const fs = require('fs');
 const app = express();
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); // Set your key in Render env vars
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -66,23 +68,14 @@ app.post('/chat', upload.single('file'), async (req, res) => {
     : message;
 
   try {
-    const response = await axios.post(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        model: "mistralai/mixtral-8x7b-instruct",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ]
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${process.env.MPC_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-    const reply = response.data.choices[0].message.content;
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ]
+    });
+    const reply = completion.choices[0].message.content;
     res.json({ reply, fileName: file ? file.originalname : null, fileLink });
   } catch (err) {
     console.error('Error contacting AI:', err.response ? err.response.data : err.message);
