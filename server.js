@@ -1,11 +1,9 @@
 const express = require('express');
 const path = require('path');
-const { OpenAI } = require('openai');
 const multer = require('multer');
 const fs = require('fs');
+const axios = require('axios');
 const app = express();
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); // Set your key in Render env vars
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -33,7 +31,7 @@ app.post('/chat', upload.single('file'), async (req, res) => {
   console.log('POST /chat called');
   console.log('Received body:', req.body);
   const { message, persona } = req.body;
-  const file = req.file; // file info if uploaded
+  const file = req.file;
   let fileContent = '';
 
   let fileLink = '';
@@ -68,17 +66,25 @@ app.post('/chat', upload.single('file'), async (req, res) => {
     : message;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ]
-    });
-    const reply = completion.choices[0].message.content;
+    // Example: Using Hugging Face's "mistralai/Mixtral-8x7B-Instruct-v0.1" model
+    const HF_API_TOKEN = process.env.HUGGINGFACE_API_KEY; // Set this in your env vars
+    const hfResponse = await axios.post(
+      'https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1',
+      {
+        inputs: `${systemPrompt}\n\nUser: ${userPrompt}`,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${HF_API_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    // The response format may vary by model
+    const reply = hfResponse.data[0]?.generated_text || "Sorry, I couldn't generate a response.";
     res.json({ reply, fileName: file ? file.originalname : null, fileLink });
   } catch (err) {
-    console.error('Error contacting AI:', err.response ? err.response.data : err.message);
+    console.error('Error contacting Hugging Face API:', err.response ? err.response.data : err.message);
     res.json({ reply: "Sorry, there was an error contacting the AI." });
   }
 });
