@@ -66,13 +66,10 @@ app.post('/chat', upload.single('file'), async (req, res) => {
     : message;
 
   try {
-    // Example: Using Hugging Face's "mistralai/Mixtral-8x7B-Instruct-v0.1" model
     const HF_API_TOKEN = process.env.HUGGINGFACE_API_KEY; // Set this in your env vars
     const hfResponse = await axios.post(
-      'https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1',
-      {
-        inputs: `${systemPrompt}\n\nUser: ${userPrompt}`,
-      },
+      'https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta',
+      { inputs: `${systemPrompt}\n\nUser: ${userPrompt}` },
       {
         headers: {
           Authorization: `Bearer ${HF_API_TOKEN}`,
@@ -80,7 +77,8 @@ app.post('/chat', upload.single('file'), async (req, res) => {
         }
       }
     );
-    // The response format may vary by model
+    // The response format for text generation models is usually:
+    // [{ generated_text: "..." }]
     const reply = hfResponse.data[0]?.generated_text || "Sorry, I couldn't generate a response.";
     res.json({ reply, fileName: file ? file.originalname : null, fileLink });
   } catch (err) {
