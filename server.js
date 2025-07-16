@@ -76,7 +76,7 @@ app.post('/chat', upload.single('file'), async (req, res) => {
         { role: "user", content: userPrompt }
       ]
     });
-    const reply = completion.choices[0].message.content;
+    const reply = comjpletion.choices[0].message.content;
     res.json({ reply, fileName: file ? file.originalname : null, fileLink });
   } catch (err) {
     console.error('Error contacting OpenAI:', err.response ? err.response.data : err.message);
@@ -86,5 +86,5 @@ app.post('/chat', upload.single('file'), async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
-  console.log('API KEY:', process.env.MPC_KEY ? 'Loaded' : 'Not loaded');
+  console.log('API KEY:', process.env.OPENAI_API_KEY ? 'Loaded' : 'Not loaded');
 });
