@@ -4,6 +4,35 @@ const sendBtn = document.getElementById('send-btn');
 const personaSelect = document.getElementById('persona');
 const fileInput = document.getElementById('file-input');
 
+let chats = {}; // { chatId: { persona, messages: [...] } }
+let currentChatId = null;
+
+function generateChatId() {
+  return 'chat_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+}
+
+function startNewChat(persona) {
+  currentChatId = generateChatId();
+  chats[currentChatId] = { persona, messages: [] };
+  renderSidebar();
+  renderChat();
+}
+
+function renderSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.innerHTML = '<h3>Chats</h3>';
+  Object.keys(chats).forEach(chatId => {
+    const chat = chats[chatId];
+    const btn = document.createElement('button');
+    btn.textContent = `${chat.persona} (${chatId})`;
+    btn.onclick = () => {
+      currentChatId = chatId;
+      renderChat();
+    };
+    sidebar.appendChild(btn);
+  });
+}
+
 function addMessage(text, sender, avatar) {
   const msgDiv = document.createElement('div');
   msgDiv.className = `message ${sender}`;
@@ -38,29 +67,22 @@ function sendMessage() {
   const text = userInput.value.trim();
   const persona = personaSelect.value;
   const file = fileInput.files[0];
-
+  if (!currentChatId) startNewChat(persona);
   if (!text && !file) return;
 
   const personaAvatars = {
-    therapist: '🧠',
-    chef: '👨‍🍳',
-    coach: '🏅',
-    comedian: '🎤',
-    teacher: '📚',
-    techexpert: '💻',
-    doctor: '🩺',
-    pharmacist: '💊',
-    financer: '💵',
-    businessman: '💼',
-    scientist: '🔬',
-    historian: '🏛️'
+    therapist: '🧠', chef: '👨‍🍳', coach: '🏅', comedian: '🎤',
+    teacher: '📚', techexpert: '💻', doctor: '🩺', pharmacist: '💊',
+    financer: '💵', businessman: '💼', scientist: '🔬', historian: '🏛️'
   };
 
-  addMessage(
-    text || (file ? `Sent a file: ${file.name}` : ''),
-    'user',
-    '🧑'
-  );
+  // Save user message
+  chats[currentChatId].messages.push({
+    text: text || (file ? `Sent a file: ${file.name}` : ''),
+    sender: 'user',
+    avatar: '🧑'
+  });
+  renderChat();
   userInput.value = '';
   fileInput.value = '';
   showTyping();
@@ -78,14 +100,29 @@ function sendMessage() {
     .then(data => {
       removeTyping();
       let botMessage = data.reply;
-      // If a file was uploaded, show a link to it
       if (data.fileName && data.fileLink) {
         botMessage += `<br><a href="${data.fileLink}" target="_blank">Download: ${data.fileName}</a>`;
       }
-      addMessage(botMessage, 'bot', personaAvatars[persona] || '🤖');
+      chats[currentChatId].messages.push({
+        text: botMessage,
+        sender: 'bot',
+        avatar: personaAvatars[persona] || '🤖'
+      });
+      renderChat();
     })
     .catch(() => {
       removeTyping();
-      addMessage("Sorry, there was an error contacting the server.", 'bot', '🤖');
+      chats[currentChatId].messages.push({
+        text: "Sorry, there was an error contacting the server.",
+        sender: 'bot',
+        avatar: '🤖'
+      });
+      renderChat();
     });
 }
+
+// On page load, start a chat with the default persona
+window.onload = () => {
+  startNewChat(personaSelect.value);
+  renderSidebar();
+};

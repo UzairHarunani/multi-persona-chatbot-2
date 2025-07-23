@@ -7,32 +7,35 @@
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
-  <div class="chat-wrapper">
-    <h1>Multi-Persona Chatbot</h1>
-    <div class="persona-selector">
-      <label for="persona">Choose a Persona:</label>
-      <select id="persona">
-        <option value="therapist">🧠 Therapist</option>
-        <option value="chef">👨‍🍳 Chef</option>
-        <option value="coach">🏅 Sports Coach</option>
-        <option value="comedian">🎤 Comedian</option>
-        <option value="teacher">📚 Teacher</option>
-        <option value="techexpert">💻 Tech Expert</option>
-        <option value="doctor">🩺 Doctor</option>
-        <option value="pharmacist">💊 Pharmacist</option>
-        <option value="financer">💵 Financer</option>
-        <option value="businessman">💼 Businessman</option>
-        <option value="scientist">🔬 Scientist</option>
-        <option value="historian">🏛️ Historian</option>
-      </select>
-    </div>
+  <div class="main-layout">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="chat-wrapper">
+      <h1>Multi-Persona Chatbot</h1>
+      <div class="persona-selector">
+        <label for="persona">Choose a Persona:</label>
+        <select id="persona">
+          <option value="therapist">🧠 Therapist</option>
+          <option value="chef">👨‍🍳 Chef</option>
+          <option value="coach">🏅 Sports Coach</option>
+          <option value="comedian">🎤 Comedian</option>
+          <option value="teacher">📚 Teacher</option>
+          <option value="techexpert">💻 Tech Expert</option>
+          <option value="doctor">🩺 Doctor</option>
+          <option value="pharmacist">💊 Pharmacist</option>
+          <option value="financer">💵 Financer</option>
+          <option value="businessman">💼 Businessman</option>
+          <option value="scientist">🔬 Scientist</option>
+          <option value="historian">🏛️ Historian</option>
+        </select>
+      </div>
 
-    <div class="chatbox" id="chatbox"></div>
+      <div class="chatbox" id="chatbox"></div>
 
-    <div class="input-area">
-      <input type="file" id="file-input" />
-      <input type="text" id="user-input" placeholder="Type your message..." />
-      <button id="send-btn">Send</button>
+      <div class="input-area">
+        <input type="file" id="file-input" />
+        <input type="text" id="user-input" placeholder="Type your message..." />
+        <button id="send-btn">Send</button>
+      </div>
     </div>
   </div>
 
