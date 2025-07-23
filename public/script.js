@@ -121,6 +121,14 @@ function sendMessage() {
     });
 }
 
+function renderChat() {
+  chatbox.innerHTML = '';
+  if (!currentChatId) return;
+  chats[currentChatId].messages.forEach(msg => {
+    addMessage(msg.text, msg.sender, msg.avatar);
+  });
+}
+
 // On page load, start a chat with the default persona
 window.onload = () => {
   startNewChat(personaSelect.value);
