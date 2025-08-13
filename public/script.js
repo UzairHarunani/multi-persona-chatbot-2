@@ -62,6 +62,27 @@ function renderSidebar() {
       }
     };
     btn.appendChild(editBtn);
+
+    // Delete button
+    const deleteBtn = document.createElement('span');
+    deleteBtn.textContent = ' 🗑️';
+    deleteBtn.style.cursor = 'pointer';
+    deleteBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (confirm('Delete this chat?')) {
+        chats.splice(idx, 1);
+        // Adjust currentChatIdx if needed
+        if (currentChatIdx === idx) {
+          currentChatIdx = chats.length ? 0 : null;
+        } else if (currentChatIdx > idx) {
+          currentChatIdx--;
+        }
+        saveChats();
+        renderSidebar();
+        renderChat();
+      }
+    };
+    btn.appendChild(deleteBtn);
   });
 
   // New Chat button
