@@ -34,6 +34,12 @@ body {
 }
 
 @media (max-width: 700px) {
+  .sidebar {
+    width: 80px;
+    min-width: 60px;
+    font-size: 12px;
+    padding: 4px;
+  }
   .chat-wrapper {
     max-width: 98vw;
     min-width: unset;
