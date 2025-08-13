@@ -4,16 +4,32 @@ const sendBtn = document.getElementById('send-btn');
 const personaSelect = document.getElementById('persona');
 const fileInput = document.getElementById('file-input');
 
-let chats = {}; // { chatId: { persona, messages: [...] } }
-let currentChatId = null;
+let chats = []; // [{ name, persona, messages: [...] }]
+let currentChatIdx = null;
+
+// Load chats from localStorage
+function loadChats() {
+  const saved = localStorage.getItem('chats');
+  chats = saved ? JSON.parse(saved) : [];
+}
+
+// Save chats to localStorage
+function saveChats() {
+  localStorage.setItem('chats', JSON.stringify(chats));
+}
 
 function generateChatId() {
   return 'chat_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
 }
 
 function startNewChat(persona) {
-  currentChatId = generateChatId();
-  chats[currentChatId] = { persona, messages: [] };
+  chats.push({
+    name: "New Chat",
+    persona,
+    messages: []
+  });
+  currentChatIdx = chats.length - 1;
+  saveChats();
   renderSidebar();
   renderChat();
 }
@@ -21,16 +37,38 @@ function startNewChat(persona) {
 function renderSidebar() {
   const sidebar = document.getElementById('sidebar');
   sidebar.innerHTML = '<h3>Chats</h3>';
-  Object.keys(chats).forEach(chatId => {
-    const chat = chats[chatId];
+  chats.forEach((chat, idx) => {
     const btn = document.createElement('button');
-    btn.textContent = `${chat.persona} (${chatId})`;
+    btn.className = (idx === currentChatIdx) ? 'active' : '';
+    btn.textContent = chat.name;
     btn.onclick = () => {
-      currentChatId = chatId;
+      currentChatIdx = idx;
+      renderSidebar();
       renderChat();
     };
     sidebar.appendChild(btn);
+
+    // Edit button
+    const editBtn = document.createElement('span');
+    editBtn.textContent = ' ✏️';
+    editBtn.style.cursor = 'pointer';
+    editBtn.onclick = (e) => {
+      e.stopPropagation();
+      const newName = prompt('Rename chat:', chat.name);
+      if (newName && newName.trim()) {
+        chat.name = newName.trim();
+        saveChats();
+        renderSidebar();
+      }
+    };
+    btn.appendChild(editBtn);
   });
+
+  // New Chat button
+  const newBtn = document.createElement('button');
+  newBtn.textContent = '+ New Chat';
+  newBtn.onclick = () => startNewChat(personaSelect.value);
+  sidebar.appendChild(newBtn);
 }
 
 function addMessage(text, sender, avatar) {
@@ -67,7 +105,7 @@ function sendMessage() {
   const text = userInput.value.trim();
   const persona = personaSelect.value;
   const file = fileInput.files[0];
-  if (!currentChatId) startNewChat(persona);
+  if (currentChatIdx === null) startNewChat(persona);
   if (!text && !file) return;
 
   const personaAvatars = {
@@ -77,11 +115,12 @@ function sendMessage() {
   };
 
   // Save user message
-  chats[currentChatId].messages.push({
+  chats[currentChatIdx].messages.push({
     text: text || (file ? `Sent a file: ${file.name}` : ''),
     sender: 'user',
     avatar: '🧑'
   });
+  saveChats();
   renderChat();
   userInput.value = '';
   fileInput.value = '';
@@ -103,34 +142,42 @@ function sendMessage() {
       if (data.fileName && data.fileLink) {
         botMessage += `<br><a href="${data.fileLink}" target="_blank">Download: ${data.fileName}</a>`;
       }
-      chats[currentChatId].messages.push({
+      chats[currentChatIdx].messages.push({
         text: botMessage,
         sender: 'bot',
         avatar: personaAvatars[persona] || '🤖'
       });
+      saveChats();
       renderChat();
     })
     .catch(() => {
       removeTyping();
-      chats[currentChatId].messages.push({
+      chats[currentChatIdx].messages.push({
         text: "Sorry, there was an error contacting the server.",
         sender: 'bot',
         avatar: '🤖'
       });
+      saveChats();
       renderChat();
     });
 }
 
 function renderChat() {
   chatbox.innerHTML = '';
-  if (!currentChatId) return;
-  chats[currentChatId].messages.forEach(msg => {
+  if (currentChatIdx === null || !chats[currentChatIdx]) return;
+  chats[currentChatIdx].messages.forEach(msg => {
     addMessage(msg.text, msg.sender, msg.avatar);
   });
 }
 
-// On page load, start a chat with the default persona
+// When persona changes, start a new chat
+personaSelect.onchange = () => startNewChat(personaSelect.value);
+
+// On page load, load chats and show sidebar
 window.onload = () => {
-  startNewChat(personaSelect.value);
+  loadChats();
+  if (chats.length === 0) startNewChat(personaSelect.value);
+  else currentChatIdx = 0;
   renderSidebar();
+  renderChat();
 };
