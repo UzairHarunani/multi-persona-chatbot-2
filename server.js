@@ -65,11 +65,20 @@ app.post('/chat', upload.single('file'), async (req, res) => {
     ? `${message}\n\n[Attached file content:]\n${fileContent}`
     : message;
 
+  // model must be configured via env var to avoid "No endpoints found" issues
+  const MODEL = process.env.MODEL;
+  if (!MODEL) {
+    console.error('MODEL environment variable not set.');
+    return res.status(500).json({
+      reply: 'Server misconfiguration: MODEL not set. Set the MODEL env var to a valid provider endpoint (e.g. "mixtral-8x7b-instruct").'
+    });
+  }
+
   try {
     const response = await axios.post(
       'https://openrouter.ai/api/v1/chat/completions',
       {
-        model: "mistralai/mixtral-8x7b-instruct",
+        model: MODEL,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
@@ -82,11 +91,16 @@ app.post('/chat', upload.single('file'), async (req, res) => {
         }
       }
     );
-    const reply = response.data.choices[0].message.content;
+    const reply = response.data?.choices?.[0]?.message?.content || 'No reply from model.';
     res.json({ reply, fileName: file ? file.originalname : null, fileLink });
   } catch (err) {
-    console.error('Error contacting AI:', err.response ? err.response.data : err.message);
-    res.json({ reply: "Sorry, there was an error contacting the AI." });
+    // Improved logging and client error response
+    console.error('Error contacting AI:', err.response ? err.response.data : err.message || err);
+    const providerError = err.response ? err.response.data : { message: err.message };
+    res.status(500).json({
+      reply: "Sorry, there was an error contacting the AI.",
+      error: providerError
+    });
   }
 });
 const PORT = process.env.PORT || 3000;
