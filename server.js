@@ -26,6 +26,18 @@ const personas = {
   historian: msg => `As a historian: "${msg}" has a rich history. Would you like to hear about its origins or impact?`
 };
 
+// Load .env for local development (optional)
+try { require('dotenv').config(); } catch (_) {}
+
+// Centralized config
+const MODEL = process.env.MODEL;
+const API_KEY = process.env.OPENAI_API_KEY || process.env.MPC_KEY;
+
+if (!MODEL || !API_KEY) {
+  console.error('Missing env vars: set MODEL and OPENAI_API_KEY (or MPC_KEY).');
+  // don't exit here so the server can still serve static files, but /chat will return a helpful error
+}
+
 // Use multer for /chat route to handle multipart/form-data
 app.post('/chat', upload.single('file'), async (req, res) => {
   console.log('POST /chat called');
@@ -65,36 +77,43 @@ app.post('/chat', upload.single('file'), async (req, res) => {
     ? `${message}\n\n[Attached file content:]\n${fileContent}`
     : message;
 
-  // model must be configured via env var to avoid "No endpoints found" issues
-  const MODEL = process.env.MODEL;
-  if (!MODEL) {
-    console.error('MODEL environment variable not set.');
+  // Require MODEL & API key
+  if (!MODEL || !API_KEY) {
+    console.error('MODEL or API key not configured.');
     return res.status(500).json({
-      reply: 'Server misconfiguration: MODEL not set. Set the MODEL env var to a valid provider endpoint (e.g. "mixtral-8x7b-instruct").'
+      reply: 'Server misconfiguration: set MODEL and OPENAI_API_KEY (or MPC_KEY) environment variables.'
     });
   }
 
   try {
-    const response = await axios.post(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        model: MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ]
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${process.env.MPC_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-    const reply = response.data?.choices?.[0]?.message?.content || 'No reply from model.';
+    // Build messages for the target API
+    const messages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    let response;
+    // If using an OpenAI-style model id (gpt-...), call OpenAI API
+    if (MODEL.toLowerCase().startsWith('gpt')) {
+      response = await axios.post(
+        'https://api.openai.com/v1/chat/completions',
+        { model: MODEL, messages },
+        { headers: { Authorization: `Bearer ${API_KEY}`, 'Content-Type': 'application/json' } }
+      );
+    } else {
+      // Fallback to OpenRouter (or other) endpoint
+      response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        { model: MODEL, messages },
+        { headers: { Authorization: `Bearer ${API_KEY}`, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const reply = response.data?.choices?.[0]?.message?.content
+      || response.data?.choices?.[0]?.text
+      || 'No reply from model.';
     res.json({ reply, fileName: file ? file.originalname : null, fileLink });
   } catch (err) {
-    // Improved logging and client error response
     console.error('Error contacting AI:', err.response ? err.response.data : err.message || err);
     const providerError = err.response ? err.response.data : { message: err.message };
     res.status(500).json({
@@ -106,5 +125,6 @@ app.post('/chat', upload.single('file'), async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
-  console.log('API KEY:', process.env.MPC_KEY ? 'Loaded' : 'Not loaded');
+  console.log('MODEL:', MODEL || 'Not set');
+  console.log('API KEY:', API_KEY ? 'Loaded' : 'Not loaded');
 });
